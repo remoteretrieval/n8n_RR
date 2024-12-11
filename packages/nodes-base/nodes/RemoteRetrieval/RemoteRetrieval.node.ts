@@ -1,17 +1,9 @@
-import {
-	INodeExecutionData,
-	IExecuteFunctions,
-	IDataObject,
-	INodeTypeDescription,
-	INodeType,
-	ICredentialDataDecryptedObject,
-	IHttpRequestMethods,
-} from 'n8n-workflow';
+import { INodeExecutionData, IExecuteFunctions, IDataObject, INodeTypeDescription, INodeType, IHttpRequestMethods, NodeConnectionType, NodeOperationError } from 'n8n-workflow';
 
 export class RemoteRetrieval implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Remote Retrieval',
-		name: 'Remote Retrieval',
+		name: 'remoteRetrieval',
 		icon: 'file:remoteretrieval.svg',
 		group: ['transform'],
 		version: 1,
@@ -19,8 +11,8 @@ export class RemoteRetrieval implements INodeType {
 		defaults: {
 			name: 'Employee',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: ['main'] as NodeConnectionType[],
+		outputs: ['main'] as NodeConnectionType[],
 		credentials: [
 			{
 				name: 'RemoteRetrievalApi',
@@ -32,6 +24,7 @@ export class RemoteRetrieval implements INodeType {
 				displayName: 'Operation',
 				name: 'operation',
 				type: 'options',
+				noDataExpression: true,
 				options: [
 					{
 						name: 'Create Order',
@@ -47,15 +40,14 @@ export class RemoteRetrieval implements INodeType {
 					},
 				],
 				default: 'create',
-				description: 'Select the operation to perform',
 			},
 			{
 				displayName: 'Type of Equipment',
 				name: 'type_of_equipment',
 				type: 'options',
-				default: '',
+				default: 'Laptop',
 				required: true,
-				description: 'Type of equipment being ordered.',
+				description: 'Type of equipment being ordered',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -77,8 +69,8 @@ export class RemoteRetrieval implements INodeType {
 				name: 'order_type',
 				type: 'options',
 				required: true,
-				default: '',
-				description: 'The type of order.',
+				default: 'sell_this_equipment',
+				description: 'The type of order',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -86,7 +78,7 @@ export class RemoteRetrieval implements INodeType {
 				},
 				options: [
 					{
-						name: 'Sell this Equipment',
+						name: 'Sell This Equipment',
 						value: 'sell_this_equipment',
 					},
 					{
@@ -102,7 +94,7 @@ export class RemoteRetrieval implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'Name of the employee.',
+				description: 'Name of the employee',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -115,7 +107,7 @@ export class RemoteRetrieval implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'Email of the employee.',
+				description: 'Email of the employee',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -127,7 +119,7 @@ export class RemoteRetrieval implements INodeType {
 				name: 'employee_address_line_1',
 				type: 'string',
 				default: '',
-				description: 'Address Line 1 of the employee.',
+				description: 'Address Line 1 of the employee',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -139,7 +131,7 @@ export class RemoteRetrieval implements INodeType {
 				name: 'employee_address_line_2',
 				type: 'string',
 				default: '',
-				description: 'Address Line 2 of the employee.',
+				description: 'Address Line 2 of the employee',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -152,7 +144,7 @@ export class RemoteRetrieval implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'City where the employee is located.',
+				description: 'City where the employee is located',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -163,9 +155,9 @@ export class RemoteRetrieval implements INodeType {
 				displayName: 'Employee State',
 				name: 'employee_state',
 				type: 'options',
-				default: '',
+				default: 'AL',
 				required: true,
-				description: 'State where the employee is located.',
+				description: 'State where the employee is located',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -187,6 +179,18 @@ export class RemoteRetrieval implements INodeType {
 					{
 						name: 'Arkansas',
 						value: 'AR',
+					},
+					{
+						name: 'Armed Forces (AA)',
+						value: 'AA',
+					},
+					{
+						name: 'Armed Forces (AE)',
+						value: 'AE',
+					},
+					{
+						name: 'Armed Forces (AP)',
+						value: 'AP',
 					},
 					{
 						name: 'California',
@@ -376,18 +380,6 @@ export class RemoteRetrieval implements INodeType {
 						name: 'Wyoming',
 						value: 'WY',
 					},
-					{
-						name: 'Armed Forces (AA)',
-						value: 'AA',
-					},
-					{
-						name: 'Armed Forces (AE)',
-						value: 'AE',
-					},
-					{
-						name: 'Armed Forces (AP)',
-						value: 'AP',
-					},
 				],
 			},
 			{
@@ -396,7 +388,7 @@ export class RemoteRetrieval implements INodeType {
 				type: 'string',
 				default: 'United States',
 				required: true,
-				description: 'Country where the employee is located.',
+				description: 'Country where the employee is located',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -415,7 +407,7 @@ export class RemoteRetrieval implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'ZIP code of the employee.',
+				description: 'ZIP code of the employee',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -428,7 +420,7 @@ export class RemoteRetrieval implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'Phone number of the employee.',
+				description: 'Phone number of the employee',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -442,7 +434,7 @@ export class RemoteRetrieval implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'Name of the person handling the return at the company.',
+				description: 'Name of the person handling the return at the company',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -455,7 +447,7 @@ export class RemoteRetrieval implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'Name of the company handling the return.',
+				description: 'Name of the company handling the return',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -467,7 +459,6 @@ export class RemoteRetrieval implements INodeType {
 				name: 'return_address_line_1',
 				type: 'string',
 				default: '',
-				description: 'Return Address Line 1.',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -479,7 +470,6 @@ export class RemoteRetrieval implements INodeType {
 				name: 'return_address_line_2',
 				type: 'string',
 				default: '',
-				description: 'Return Address Line 2.',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -492,7 +482,7 @@ export class RemoteRetrieval implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'City for the return address.',
+				description: 'City for the return address',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -503,9 +493,9 @@ export class RemoteRetrieval implements INodeType {
 				displayName: 'Return State',
 				name: 'return_state',
 				type: 'options',
-				default: '',
+				default: 'AL',
 				required: true,
-				description: 'State for the return address.',
+				description: 'State for the return address',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -527,6 +517,18 @@ export class RemoteRetrieval implements INodeType {
 					{
 						name: 'Arkansas',
 						value: 'AR',
+					},
+					{
+						name: 'Armed Forces (AA)',
+						value: 'AA',
+					},
+					{
+						name: 'Armed Forces (AE)',
+						value: 'AE',
+					},
+					{
+						name: 'Armed Forces (AP)',
+						value: 'AP',
 					},
 					{
 						name: 'California',
@@ -716,27 +718,15 @@ export class RemoteRetrieval implements INodeType {
 						name: 'Wyoming',
 						value: 'WY',
 					},
-					{
-						name: 'Armed Forces (AA)',
-						value: 'AA',
-					},
-					{
-						name: 'Armed Forces (AE)',
-						value: 'AE',
-					},
-					{
-						name: 'Armed Forces (AP)',
-						value: 'AP',
-					},
 				],
 			},
 			{
 				displayName: 'Return Country',
 				name: 'return_country',
 				type: 'options',
-				default: 'United States',
+				default: 'US',
 				required: true,
-				description: 'Country for the return address.',
+				description: 'Country for the return address',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -755,7 +745,7 @@ export class RemoteRetrieval implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'ZIP code for the return address.',
+				description: 'ZIP code for the return address',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -768,7 +758,7 @@ export class RemoteRetrieval implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'Email of the return company.',
+				description: 'Email of the return company',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -781,7 +771,7 @@ export class RemoteRetrieval implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'Phone number of the return company.',
+				description: 'Phone number of the return company',
 				displayOptions: {
 					show: {
 						operation: ['create'],
@@ -794,9 +784,11 @@ export class RemoteRetrieval implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const returnData: IDataObject[] = [];
-		const credentials: ICredentialDataDecryptedObject | undefined = await this.getCredentials(
-			'RemoteRetrievalApi',
-		);
+		const credentials = await this.getCredentials('RemoteRetrievalApi') as IDataObject;
+
+		if (!credentials || !credentials.baseUrl) {
+			throw new NodeOperationError(this.getNode(), 'Data is missing');
+		}
 
 		for (let i = 0; i < items.length; i++) {
 			const operation = this.getNodeParameter('operation', i) as string;
@@ -855,7 +847,7 @@ export class RemoteRetrieval implements INodeType {
 					method = 'GET';
 					break;
 				default:
-					throw new Error(`The operation "${operation}" is not supported.`);
+					throw new NodeOperationError(this.getNode(), `The operation "${operation}" is not supported.`); 
 			}
 
 			// Make the HTTP request using axios
@@ -875,7 +867,7 @@ export class RemoteRetrieval implements INodeType {
 				// Store the response data to return
 				returnData.push(response);
 			} catch (error) {
-				throw new Error(`API request failed: ${error.message}`);
+				throw new NodeOperationError(this.getNode(), `API request failed: ${error.message}`);
 			}
 		}
 
